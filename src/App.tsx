@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import logo from "../Acc_Logo_White_Purple_RGB.png";
 import {
   LineChart,
   Line,
@@ -19,6 +20,7 @@ import {
   Activity,
   AlertTriangle,
   CheckCircle2,
+  ArrowLeft,
   ArrowRight,
   Target,
   Users,
@@ -88,6 +90,10 @@ function fmt(n: number) { return n.toLocaleString(); }
 function pct(n: number, digits = 1) { return `${(n * 100).toFixed(digits)}%`; }
 function clamp(n: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, n)); }
 function ts() { const now = new Date(); const hh = String(now.getHours()).padStart(2, "0"); const mm = String(now.getMinutes()).padStart(2, "0"); return `${hh}:${mm}`; }
+
+const INITIAL_EVENTS: { t: string; who: string; text: string }[] = [
+  { t: "09:00", who: "SenseAgent", text: "Ingested 8 weeks history + live slots. Surge = 35%; WeatherIdx = 0.20." },
+];
 
 /*********************** Model & Simulation ************************/ 
 
@@ -388,6 +394,7 @@ function runSelfTests() {
 
 /*********************** Main App ************************/ 
 export default function App() {
+  const [view, setView] = useState<"landing" | "app">("landing");
   const [settings, setSettings] = useState<Settings>({ surgePct: 0.35, weatherIdx: 0.2, plusMix: 0.4, policy: "Balanced", upsDrop: -0.08, fedexDrop: 0.0, crowdBoost: 0.1, reserveForMembers: true, loadBalanceToNewark: 0.0 });
   const [baseline] = useState(() => computeKPIs({ ...settings, policy: "Balanced", upsDrop: 0, fedexDrop: 0, crowdBoost: 0, reserveForMembers: false }));
   const kpi = useMemo(() => computeKPIs(settings), [settings]);
@@ -419,11 +426,16 @@ export default function App() {
   ];
 
   // Events
-  const [events, setEvents] = useState<{ t: string; who: string; text: string }[]>([
-    { t: "09:00", who: "SenseAgent", text: "Ingested 8 weeks history + live slots. Surge = 35%; WeatherIdx = 0.20." },
-  ]);
+  const [events, setEvents] = useState<{ t: string; who: string; text: string }[]>(() => [...INITIAL_EVENTS]);
   const [streamFilter, setStreamFilter] = useState<"All" | "Agent" | "System">("All");
+  const storyTimers = useRef<number[]>([]);
+  
+  function clearStoryTimers() {
+    storyTimers.current.forEach((id) => clearTimeout(id));
+    storyTimers.current = [];
+  }
   useEffect(() => {
+    if (view !== "app") return;
     const t = setInterval(() => {
       const tsNow = ts();
       const picks = [
@@ -435,7 +447,7 @@ export default function App() {
       setEvents((e) => [{ t: tsNow, who: "Agent", text: picks[Math.floor(rng() * picks.length)] }, ...e].slice(0, 30));
     }, 3500);
     return () => clearInterval(t);
-  }, [kpi.otd, settings]);
+  }, [kpi.otd, settings, view]);
 
   // Apply all proposed actions at once (simple)
   const [applied, setApplied] = useState(false);
@@ -449,25 +461,69 @@ export default function App() {
     setEvents((e) => [{ t: ts(), who: "Orchestrator", text: `Applied plan: ${actions.map((a) => a.id).join(", ")}` }, ...e]);
   }
 
-  function resetScenario() {
+  function resetScenario({ logEvent = true, hard = false }: { logEvent?: boolean; hard?: boolean } = {}) {
+    clearStoryTimers();
     setSettings({ surgePct: 0.35, weatherIdx: 0.2, plusMix: 0.4, policy: "Balanced", upsDrop: -0.08, fedexDrop: 0.0, crowdBoost: 0.1, reserveForMembers: true, loadBalanceToNewark: 0.0 });
     setApplied(false);
     setActiveStage("sense");
-    setEvents((e) => [{ t: ts(), who: "System", text: "Reset to baseline scenario." }, ...e]);
+    if (hard) {
+      setEvents(() => {
+        const base = [...INITIAL_EVENTS];
+        return logEvent ? [{ t: ts(), who: "System", text: "Reset to baseline scenario." }, ...base] : base;
+      });
+    } else if (logEvent) {
+      setEvents((e) => [{ t: ts(), who: "System", text: "Reset to baseline scenario." }, ...e]);
+    }
+  }
+
+  function enterApp() {
+    resetScenario({ logEvent: false, hard: true });
+    setTab("brief");
+    setStreamFilter("All");
+    setMetricModal({ open: false });
+    setNodeModal({ open: false });
+    setHelpOpen(false);
+    setStoryRunning(false);
+    setView("app");
+  }
+
+  function returnToLanding() {
+    resetScenario({ logEvent: false, hard: true });
+    setStreamFilter("All");
+    setTab("brief");
+    setMetricModal({ open: false });
+    setNodeModal({ open: false });
+    setHelpOpen(false);
+    setStoryRunning(false);
+    setView("landing");
   }
 
   // Story mode (guided scenario)
   const [storyRunning, setStoryRunning] = useState(false);
   function runStory() {
-    if (storyRunning) return;
+    if (storyRunning || view !== "app") return;
+    clearStoryTimers();
     setStoryRunning(true);
     setActiveStage("sense");
     setEvents((e) => [{ t: ts(), who: "System", text: "Story Mode: Holiday spike begins." }, ...e]);
-    setTimeout(() => setSettings((s) => ({ ...s, surgePct: 0.5 })), 800);
-    setTimeout(() => { setActiveStage("forecast"); setSettings((s) => ({ ...s, upsDrop: -0.12 })); setEvents((e) => [{ t: ts(), who: "ForecastAgent", text: "UPS capacity dip detected; risk to same‑day ZIPs." }, ...e]); }, 1800);
-    setTimeout(() => { setActiveStage("decide"); setEvents((e) => [{ t: ts(), who: "DecideAgent", text: `Proposed: ${actions.map(a=>a.id).join(", ") || "Tighten promise; crowd boost"}` }, ...e]); }, 2800);
-    setTimeout(() => { applyPlan(); }, 3800);
-    setTimeout(() => setStoryRunning(false), 5200);
+    const t1 = window.setTimeout(() => setSettings((s) => ({ ...s, surgePct: 0.5 })), 800);
+    const t2 = window.setTimeout(() => {
+      setActiveStage("forecast");
+      setSettings((s) => ({ ...s, upsDrop: -0.12 }));
+      setEvents((e) => [{ t: ts(), who: "ForecastAgent", text: "UPS capacity dip detected; risk to same‑day ZIPs." }, ...e]);
+    }, 1800);
+    const t3 = window.setTimeout(() => {
+      setActiveStage("decide");
+      setEvents((e) => [{ t: ts(), who: "DecideAgent", text: `Proposed: ${actions.map((a) => a.id).join(", ") || "Tighten promise; crowd boost"}` }, ...e]);
+    }, 2800);
+    const t4 = window.setTimeout(() => {
+      applyPlan();
+    }, 3800);
+    const t5 = window.setTimeout(() => {
+      setStoryRunning(false);
+      storyTimers.current = [];
+    }, 5200);
+    storyTimers.current.push(t1, t2, t3, t4, t5);
   }
 
   // Modals and interactions
@@ -479,6 +535,79 @@ export default function App() {
 
   const [tab, setTab] = useState<"brief" | "orchestrator">("brief");
   const [helpOpen, setHelpOpen] = useState(false);
+
+  if (view === "landing") {
+    const phases = [
+      {
+        title: "Sense",
+        text: "Monitor demand surges, slot health, and carrier signals across MEC, RDC, and store nodes.",
+        icon: <MonitorSmartphone className="h-5 w-5 text-gray-200" />,
+      },
+      {
+        title: "Forecast",
+        text: "Blend weather friction and membership mix to project on‑time delivery risk before cutoffs break.",
+        icon: <Activity className="h-5 w-5 text-gray-200" />,
+      },
+      {
+        title: "Decide",
+        text: "Let the agents compare policies, rebalance volume, and recommend capacity moves in context.",
+        icon: <Target className="h-5 w-5 text-gray-200" />,
+      },
+      {
+        title: "Act",
+        text: "Apply the curated plan, trigger Story Mode, and watch KPIs shift with explainability baked in.",
+        icon: <PlayCircle className="h-5 w-5 text-gray-200" />,
+      },
+    ];
+
+    return (
+      <div className="min-h-screen w-full bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-gray-100">
+        <div className="mx-auto flex max-w-6xl flex-col gap-12 px-6 py-16 lg:flex-row lg:items-stretch">
+          <div className="flex flex-1 flex-col items-center gap-8 text-center lg:items-start lg:text-left">
+            <img src={logo} alt="Best Buy synthetic program logo" className="w-36" />
+            <div className="space-y-4">
+              <div className="text-sm uppercase tracking-[0.4em] text-gray-400">Best Buy · Synthetic Demo</div>
+              <h1 className="text-4xl font-semibold text-gray-100 sm:text-5xl">Delivery Promise & Capacity Orchestrator</h1>
+              <p className="max-w-xl text-base text-gray-300">
+                Navigate the end-to-end promise control tower: sense live constraints, forecast risk, decide the optimal plan,
+                and act with one click. Every tile in the experience is interactive, with Story Mode and Apply Plan ready for showcase demos.
+              </p>
+            </div>
+            <div className="flex flex-col items-center gap-3 text-sm text-gray-300 lg:items-start">
+              <button
+                onClick={enterApp}
+                className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-6 py-3 font-semibold text-gray-900 shadow-lg shadow-gray-900/40 transition hover:brightness-95"
+              >
+                Enter orchestrator <ArrowRight className="h-4 w-4" />
+              </button>
+              <div className="text-xs text-gray-500">Jump in to explore Story Mode, scenario controls, and the agent activity stream.</div>
+            </div>
+          </div>
+          <div className="flex flex-1 flex-col justify-between gap-8 rounded-3xl border border-gray-800 bg-gray-900/70 p-8 shadow-2xl shadow-black/30">
+            <div>
+              <div className="text-xs uppercase tracking-[0.35em] text-gray-500">Sense → Forecast → Decide → Act</div>
+              <div className="mt-3 text-lg font-medium text-gray-200">Phased highlights from the orchestrator</div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {phases.map((phase) => (
+                <div key={phase.title} className="rounded-2xl border border-gray-800 bg-gray-950/80 p-5 shadow-inner shadow-black/20">
+                  <div className="flex items-center gap-3 text-gray-200">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-800/80">{phase.icon}</span>
+                    <span className="text-base font-medium">{phase.title}</span>
+                  </div>
+                  <p className="mt-3 text-sm text-gray-400">{phase.text}</p>
+                </div>
+              ))}
+            </div>
+            <div className="rounded-2xl border border-dashed border-gray-800/80 bg-gray-950/60 p-4 text-sm text-gray-400">
+              Story Mode guides the conversation, while Apply Plan executes recommended actions in a single motion — perfect for executive walk-throughs.
+            </div>
+          </div>
+        </div>
+        <div className="pb-12 text-center text-xs text-gray-500">For information: ely.x.colon</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full bg-gray-950 text-gray-100">
@@ -506,6 +635,7 @@ export default function App() {
           <button onClick={runStory} className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl ${storyRunning ? "bg-gray-700 text-gray-300" : "bg-gray-200 text-gray-900 hover:brightness-95"}`} title="Auto-play a guided scenario"><Wand2 className="h-4 w-4"/>{storyRunning ? "Story Running" : "Story Mode"}</button>
           <button onClick={applyPlan} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-200 text-gray-900 font-medium hover:brightness-95" title="Apply all recommended actions"><PlayCircle className="h-4 w-4"/>Apply Plan</button>
           <button onClick={resetScenario} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-700 hover:bg-gray-900/60" title="Reset to baseline"><RefreshCw className="h-4 w-4"/>Reset</button>
+          <button onClick={returnToLanding} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-700 hover:bg-gray-900/60" title="Return to landing page"><ArrowLeft className="h-4 w-4"/>Landing</button>
           <button onClick={() => setHelpOpen(true)} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-700 hover:bg-gray-900/60" title="Open guide"><HelpCircle className="h-4 w-4"/>Help</button>
         </div>
       </header>
