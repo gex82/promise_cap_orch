@@ -316,9 +316,12 @@ function ChartPanel({ data, baseline, label, type = "area", onTypeCycle }: { dat
           )}
         </ResponsiveContainer>
       </div>
-      <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
-        <button className="underline decoration-dotted" onClick={onTypeCycle}>Cycle chart type</button>
-        <div className="flex items-center gap-2"><Pill>Hover for details</Pill><Pill>Dashed = baseline</Pill></div>
+      <div className="mt-2 flex items-end justify-between">
+        <button className="text-xs text-gray-400 underline decoration-dotted" onClick={onTypeCycle}>Cycle chart type</button>
+        <div className="text-[10px] leading-4 text-gray-500 text-right">
+          <div>Hover for details</div>
+          <div>Dashed = baseline</div>
+        </div>
       </div>
     </div>
   );
@@ -635,7 +638,13 @@ export default function App() {
           <button onClick={runStory} className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl ${storyRunning ? "bg-gray-700 text-gray-300" : "bg-gray-200 text-gray-900 hover:brightness-95"}`} title="Auto-play a guided scenario"><Wand2 className="h-4 w-4"/>{storyRunning ? "Story Running" : "Story Mode"}</button>
           <button onClick={applyPlan} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-200 text-gray-900 font-medium hover:brightness-95" title="Apply all recommended actions"><PlayCircle className="h-4 w-4"/>Apply Plan</button>
           <button onClick={resetScenario} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-700 hover:bg-gray-900/60" title="Reset to baseline"><RefreshCw className="h-4 w-4"/>Reset</button>
-          <button onClick={returnToLanding} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-700 hover:bg-gray-900/60" title="Return to landing page"><ArrowLeft className="h-4 w-4"/>Landing</button>
+          <button
+            onClick={returnToLanding}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-[#A100FF] text-white shadow-sm transition hover:bg-[#8c00d9]"
+            title="Return to landing page"
+          >
+            <ArrowLeft className="h-4 w-4" />Landing
+          </button>
           <button onClick={() => setHelpOpen(true)} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-700 hover:bg-gray-900/60" title="Open guide"><HelpCircle className="h-4 w-4"/>Help</button>
         </div>
       </header>
