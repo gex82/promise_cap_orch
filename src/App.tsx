@@ -271,43 +271,45 @@ function NodeCard({ name, city, util, onClick }: { name: string; city: string; u
 
 function ChartPanel({ data, baseline, label, type = "area", onTypeCycle }: { data: any[]; baseline?: any[]; label: string; type?: "area" | "bar" | "line"; onTypeCycle?: () => void }) {
   return (
-    <div className="rounded-2xl border border-gray-800 bg-gray-900/70 p-4 h-56">
-      <div className="flex items-center justify-between mb-2">
+    <div className="flex h-56 flex-col rounded-2xl border border-gray-800 bg-gray-900/70 p-4">
+      <div className="mb-2 flex items-center justify-between">
         <div className="text-sm text-gray-300 flex items-center gap-2">
           {label}
           <Tooltip text="Click chart footer to cycle visualization. Toggle baseline compare." />
         </div>
       </div>
-      <ResponsiveContainer width="100%" height="100%">
-        {type === "area" ? (
-          <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke="#1f2937" vertical={false} />
-            <XAxis dataKey="x" stroke="#6b7280" tick={{ fontSize: 12 }} />
-            <YAxis stroke="#6b7280" tick={{ fontSize: 12 }} />
-            <RTooltip contentStyle={{ background: "#0b0f19", border: "1px solid #1f2937", color: "#e5e7eb" }} />
-            <Area type="monotone" dataKey="y" stroke="#9ca3af" fill="#6b7280" fillOpacity={0.3} />
-            {baseline && <Line type="monotone" dataKey="y" data={baseline} stroke="#9ca3af" strokeDasharray="4 4" dot={false} />}
-          </AreaChart>
-        ) : type === "bar" ? (
-          <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke="#1f2937" vertical={false} />
-            <XAxis dataKey="x" stroke="#6b7280" tick={{ fontSize: 12 }} />
-            <YAxis stroke="#6b7280" tick={{ fontSize: 12 }} />
-            <RTooltip contentStyle={{ background: "#0b0f19", border: "1px solid #1f2937", color: "#e5e7eb" }} />
-            <Bar dataKey="y" stroke="#9ca3af" fill="#6b7280" />
-            {baseline && <Line type="monotone" dataKey="y" data={baseline} stroke="#9ca3af" strokeDasharray="4 4" dot={false} />}
-          </BarChart>
-        ) : (
-          <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke="#1f2937" vertical={false} />
-            <XAxis dataKey="x" stroke="#6b7280" tick={{ fontSize: 12 }} />
-            <YAxis stroke="#6b7280" tick={{ fontSize: 12 }} />
-            <RTooltip contentStyle={{ background: "#0b0f19", border: "1px solid #1f2937", color: "#e5e7eb" }} />
-            <Line type="monotone" dataKey="y" stroke="#9ca3af" dot={false} />
-            {baseline && <Line type="monotone" dataKey="y" data={baseline} stroke="#9ca3af" strokeDasharray="4 4" dot={false} />}
-          </LineChart>
-        )}
-      </ResponsiveContainer>
+      <div className="flex-1">
+        <ResponsiveContainer width="100%" height="100%">
+          {type === "area" ? (
+            <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+              <CartesianGrid stroke="#1f2937" vertical={false} />
+              <XAxis dataKey="x" stroke="#6b7280" tick={{ fontSize: 12 }} />
+              <YAxis stroke="#6b7280" tick={{ fontSize: 12 }} />
+              <RTooltip contentStyle={{ background: "#0b0f19", border: "1px solid #1f2937", color: "#e5e7eb" }} />
+              <Area type="monotone" dataKey="y" stroke="#9ca3af" fill="#6b7280" fillOpacity={0.3} />
+              {baseline && <Line type="monotone" dataKey="y" data={baseline} stroke="#9ca3af" strokeDasharray="4 4" dot={false} />}
+            </AreaChart>
+          ) : type === "bar" ? (
+            <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+              <CartesianGrid stroke="#1f2937" vertical={false} />
+              <XAxis dataKey="x" stroke="#6b7280" tick={{ fontSize: 12 }} />
+              <YAxis stroke="#6b7280" tick={{ fontSize: 12 }} />
+              <RTooltip contentStyle={{ background: "#0b0f19", border: "1px solid #1f2937", color: "#e5e7eb" }} />
+              <Bar dataKey="y" stroke="#9ca3af" fill="#6b7280" />
+              {baseline && <Line type="monotone" dataKey="y" data={baseline} stroke="#9ca3af" strokeDasharray="4 4" dot={false} />}
+            </BarChart>
+          ) : (
+            <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+              <CartesianGrid stroke="#1f2937" vertical={false} />
+              <XAxis dataKey="x" stroke="#6b7280" tick={{ fontSize: 12 }} />
+              <YAxis stroke="#6b7280" tick={{ fontSize: 12 }} />
+              <RTooltip contentStyle={{ background: "#0b0f19", border: "1px solid #1f2937", color: "#e5e7eb" }} />
+              <Line type="monotone" dataKey="y" stroke="#9ca3af" dot={false} />
+              {baseline && <Line type="monotone" dataKey="y" data={baseline} stroke="#9ca3af" strokeDasharray="4 4" dot={false} />}
+            </LineChart>
+          )}
+        </ResponsiveContainer>
+      </div>
       <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
         <button className="underline decoration-dotted" onClick={onTypeCycle}>Cycle chart type</button>
         <div className="flex items-center gap-2"><Pill>Hover for details</Pill><Pill>Dashed = baseline</Pill></div>
