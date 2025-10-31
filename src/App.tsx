@@ -427,12 +427,13 @@ export default function App() {
 
   // Events
   const [events, setEvents] = useState<{ t: string; who: string; text: string }[]>(() => [...INITIAL_EVENTS]);
+  const [streamFilter, setStreamFilter] = useState<"All" | "Agent" | "System">("All");
   const storyTimers = useRef<number[]>([]);
+  
   function clearStoryTimers() {
     storyTimers.current.forEach((id) => clearTimeout(id));
     storyTimers.current = [];
   }
-  const [streamFilter, setStreamFilter] = useState<"All" | "Agent" | "System">("All");
   useEffect(() => {
     if (view !== "app") return;
     const t = setInterval(() => {
