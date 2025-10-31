@@ -604,7 +604,7 @@ export default function App() {
             </div>
           </div>
         </div>
-        <div className="pb-12 text-center text-xs text-gray-500">For information: ely.x.colon</div>
+        <div className="pb-12 text-center text-xs text-gray-500">Synthetic demo for MLP • All figures illustrative • For information: ely.x.colon</div>
       </div>
     );
   }
@@ -764,7 +764,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="mx-auto max-w-7xl px-4 py-6 text-xs text-gray-500">
-        Synthetic demo for MLP • All figures illustrative • Theme: gray
+        Synthetic demo for MLP • All figures illustrative • For information: ely.x.colon
       </footer>
 
       {/* Modals */}
