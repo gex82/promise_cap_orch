@@ -570,7 +570,7 @@ export default function App() {
               <h1 className="text-4xl font-semibold text-gray-100 sm:text-5xl">Delivery Promise & Capacity Orchestrator</h1>
               <p className="max-w-xl text-base text-gray-300">
                 Navigate the end-to-end promise control tower: sense live constraints, forecast risk, decide the optimal plan,
-                and act with one click. Every tile in the experience is interactive, with Story Mode and Apply Plan ready for showcase demos.
+                and act with one click.
               </p>
             </div>
             <div className="flex flex-col items-center gap-3 text-sm text-gray-300 lg:items-start">
@@ -600,11 +600,11 @@ export default function App() {
               ))}
             </div>
             <div className="rounded-2xl border border-dashed border-gray-800/80 bg-gray-950/60 p-4 text-sm text-gray-400">
-              Story Mode guides the conversation, while Apply Plan executes recommended actions in a single motion — perfect for executive walk-throughs.
+              A lightweight Delivery Promise & Capacity Orchestrator. It simulates a Best Buy-like omni network during a holiday surge and shows how an agentic “brain” keeps promises reliable and profitable.
             </div>
           </div>
         </div>
-        <div className="pb-12 text-center text-xs text-gray-500">Synthetic demo for MLP • All figures illustrative • For information: ely.x.colon</div>
+        <div className="pb-12 text-center text-xs text-gray-500">Synthetic data for demo • All figures illustrative • For information: ely.x.colon</div>
       </div>
     );
   }
@@ -764,7 +764,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="mx-auto max-w-7xl px-4 py-6 text-xs text-gray-500">
-        Synthetic demo for MLP • All figures illustrative • For information: ely.x.colon
+        Synthetic data for demo • All figures illustrative • For information: ely.x.colon
       </footer>
 
       {/* Modals */}
@@ -832,7 +832,7 @@ export default function App() {
 
       <Modal open={helpOpen} onClose={() => setHelpOpen(false)} title="Quick Start Guide">
         <div className="space-y-3">
-          <div><b>What this is:</b> a lightweight MLP to orchestrate delivery promises during peak. Agents *sense* demand/capacity, *forecast* risk, *decide* actions, and *act* to protect ETA and conversion.</div>
+          <div><b>What this is:</b> a lightweight demo to orchestrate delivery promises during peak. Agents *sense* demand/capacity, *forecast* risk, *decide* actions, and *act* to protect ETA and conversion.</div>
           <div><b>How to demo:</b> 1) Tap <i>Story Mode</i> to auto‑play surge → risk → plan → improvement. 2) Click tiles to see definitions and drivers. 3) Use the <i>Orchestrator</i> tab to tweak the world and watch KPIs shift. 4) Hit <i>Apply Plan</i> to execute recommendations.</div>
           <div><b>Tiles:</b> All tiles are clickable and have tooltips (ⓘ). Hover charts; dashed lines show baselines. The Activity stream narrates agent behavior.</div>
           <div className="text-xs text-gray-500">All data is synthetic and illustrative.</div>
